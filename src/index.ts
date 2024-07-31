@@ -42,10 +42,7 @@ const basketView = new BasketView(cloneTemplate(basketTemplate), events);
 const orderForm = new OrderForm(cloneTemplate(orderTemplate), events);
 const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const successView = new SuccessView(cloneTemplate(successOrderTemplate), {
-    onClick: () => {
-        modal.close();
-        events.emit(Events.ORDER_CLEAR);
-    },
+    onClick: () => modal.close()
 });
 
 // Получаем продукты с сервера для отображения на главной странице
@@ -95,16 +92,25 @@ events.on(Events.PRODUCT_OPEN_IN_MODAL, (product: IProduct) => {
 // Добавить продукт в корзину
 events.on(Events.ADD_PRODUCT_TO_BASKET, (product: IProduct) => {
     appData.addProductToBasket(product);
-    pageView.basketCounter = appData.getBasket().length
+    pageView.basketCounter = appData.getBasket().length;
+    events.emit(Events.BASKET_CHANGE);
     modal.close();
 });
 
-// Открыть корзину
+// Открытие модального окна с корзиной
 events.on(Events.BASKET_OPEN, () => {
+	modal.render({
+		content: basketView.render(),
+	});
+});
+
+// Изменение в корзине
+events.on(Events.BASKET_CHANGE, () => {
     const products = appData.getBasket().map((item, index) => {
         const product = new ProductBasketView(cloneTemplate(productBasket), {
-            onClick: () => events.emit(Events.REMOVE_PRODUCT_FROM_BASKET, item)
-        });
+            onClick: () => 
+                events.emit(Events.REMOVE_PRODUCT_FROM_BASKET, item)
+    });
         return product.render({
             index: index + 1,
             id: item.id,
@@ -122,10 +128,12 @@ events.on(Events.BASKET_OPEN, () => {
     });
 });
 
+
 //Удалить продукт из корзины
 events.on(Events.REMOVE_PRODUCT_FROM_BASKET, (product: IProduct) => {
     appData.removeProductFromBasket(product);
-    pageView.basketCounter = appData.getBasket().length
+    pageView.basketCounter = appData.getBasket().length;
+    events.emit(Events.BASKET_CHANGE);
 });
 
 //Начать оформление заказа
@@ -202,6 +210,7 @@ events.on(/(^order|^contacts):submit/, () => {
                     description: !result.error ? `Списано ${result.total} синапсов` : result.error,
                 }),
             });
+            events.emit(Events.ORDER_CLEAR);
         })
         .catch(console.error);
 });
@@ -213,3 +222,12 @@ events.on(Events.ORDER_CLEAR, () => {
     orderForm.resetPaymentButtons();
 });
 
+// Блокируем прокрутку страницы если открыто модальное окно
+events.on(Events.MODAL_OPEN, () => {
+    pageView.locked = true;
+});
+
+// Разблокируем прокрутку страницы если модальное окно закрыто 
+events.on(Events.MODAL_CLOSE, () => {
+    pageView.locked = false;
+});

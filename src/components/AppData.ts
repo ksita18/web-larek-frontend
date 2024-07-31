@@ -51,7 +51,7 @@ export class AppData extends Model<IAppData> {
 
     removeProductFromBasket(product: IProduct) {
         this.basket = this.basket.filter(item => item !== product);
-        this.emitChanges(Events.BASKET_OPEN);
+        // this.emitChanges(Events.BASKET_OPEN);
     }
 
     getOrder() {

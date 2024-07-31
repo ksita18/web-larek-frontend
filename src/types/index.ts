@@ -49,6 +49,7 @@ export enum Events {
     ADD_PRODUCT_TO_BASKET = 'product:addToBasket',
     REMOVE_PRODUCT_FROM_BASKET = 'product:removeFromBasket',
     BASKET_OPEN = 'basket:open',
+    BASKET_CHANGE = 'basket:change',
     ORDER_START = 'order:start',
     SET_PAYMENT_TYPE = 'order:setPaymentType',
     ORDER_READY = 'order:ready',
